@@ -18,7 +18,7 @@ This repository was used for evaluation in the paper
 To install EncodEval directly via pip:
 
 ```bash
-pip install git+https://github.com/hgissbkh/EncodEval.git
+pip install git+https://github.com/hgissbkh/EncodEval.git@MLM_vs_CLM
 ```
 
 For development, clone the repository and install in editable mode:
@@ -26,6 +26,7 @@ For development, clone the repository and install in editable mode:
 ```bash
 git clone https://github.com/hgissbkh/EncodEval.git
 cd EncodEval
+git checkout MLM_vs_CLM
 pip install -e .
 ```
 
