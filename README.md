@@ -10,7 +10,7 @@
 - Information Retrieval (IR)
 
 This repository was used for evaluation in the paper  
-[EuroBERT: Scaling Multilingual Encoders for European Languages](https://arxiv.org/abs/2503.05500). If you're interested in training the EuroBERT model, please refer to the [EuroBERT repository](https://github.com/Nicolas-BZRD/EuroBERT).
+[Should We Still Pretrain Encoders with Masked Language Modeling?](https://arxiv.org/abs/2507.00994). 
 
 
 ## Installation
@@ -67,11 +67,11 @@ evaluator.test() # Evaluate on the test set
 
 Dataset loading and preprocessing are managed in [encodeval/datasets.py](encodeval/datasets.py). To add a new dataset, implement the loading logic in this file.
 
-Example (loading the XNLI dataset):
+Example (loading the sst2 dataset):
 
 ```python
-from encodeval.datasets import xnli
-dataset = xnli()
+from encodeval.datasets import sst2
+dataset = sst2()
 ```
 
 
@@ -80,37 +80,21 @@ dataset = xnli()
 Examples of configuration files are available in the [configs/](configs/) folder.
 
 
-## System evaluation
-
-To compare and rank models on a given task, use the `get_results` function. This will:
-
-* Run hyperparameter search on the validation set (if available and if multiple configurations are provided — see [results/toy/](results/toy/) for an example). Otherwise, it simply loads the existing results.
-* Compute average scores across languages (`average_scores`)
-* Perform statistical testing and calculate Borda counts for rankings (`system_ranking`)
-
-Example usage:
-
-```python
-from encodeval.system_ranking import get_results
-
-average_scores, system_ranking = get_results(
-    base_path="./results/toy",
-    models=["model1", "model2", "model3"], 
-    task_type="SC",
-    dataset="dataset_sc", 
-    valid_langs=["en", "fr"],
-)
-
-print(average_scores)
-print(system_ranking)
-```
-
-*Note: Rankings are based on statistical significance at the 95% confidence level.*
-
-
 ## Citation
 
 If you use this framework in your research, please consider citing:
+
+```bibtex
+@misc{gisserotboukhlef2025pretrainencodersmaskedlanguage,
+      title={Should We Still Pretrain Encoders with Masked Language Modeling?}, 
+      author={Hippolyte Gisserot-Boukhlef and Nicolas Boizard and Manuel Faysse and Duarte M. Alves and Emmanuel Malherbe and André F. T. Martins and Céline Hudelot and Pierre Colombo},
+      year={2025},
+      eprint={2507.00994},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2507.00994}, 
+}
+```
 
 ```bibtex
 @misc{boizard2025eurobertscalingmultilingualencoders,
