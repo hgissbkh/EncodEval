@@ -5,8 +5,8 @@
 **EncodEval** is a lightweight evaluation framework designed to benchmark general-purpose pre-trained encoders on a diverse set of downstream NLP tasks:
 
 - Sequence Classification (SC)  
-- Sequence Regression (SR)  
-- Token Classification (TC)  
+- Token Classification (TC)
+- Question Answering (QA)  
 - Information Retrieval (IR)
 
 This repository was used for evaluation in the paper  
@@ -40,7 +40,7 @@ python main.py \
     --model_path <model_path>
 ```
 
-This will generate a `results.json` file with instance-level scores. For analyzing and comparing system-level results, see the [System Evaluation](#system-evaluation) section below.
+This will generate a `results.json` file with instance-level scores.
 
 
 ## Task Evaluation Modules
@@ -65,7 +65,7 @@ evaluator.test() # Evaluate on the test set
 
 ## Datasets
 
-Dataset loading and preprocessing are managed in [encodeval/datasets.py](encodeval/datasets.py). To add a new dataset, implement the loading logic in this file.
+Dataset loading and preprocessing are managed in [encodeval/datasets.py](encodeval/datasets.py).
 
 Example (loading the sst2 dataset):
 
@@ -78,6 +78,11 @@ dataset = sst2()
 ## Configuration Files
 
 Examples of configuration files are available in the [configs/](configs/) folder.
+
+
+## Results
+
+All evaluation results are available in the [results/](results/) directory as JSON files.
 
 
 ## Citation
