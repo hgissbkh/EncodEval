@@ -78,7 +78,7 @@ dataset = sst2()
 
 ## Configuration Files
 
-Examples of configuration files are available in the [configs/](configs/) folder.
+Configuration files are available in the [configs/](configs/) folder.
 
 
 ## Results
