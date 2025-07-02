@@ -52,7 +52,7 @@ Example usage in Python:
 ```python
 from encodeval.eval_tasks import EvalConfig, SequenceClassificationEval
 
-config_file = "./configs/sequence_classification_tasks/example.yaml"
+config_file = "./configs/SC/sst2_lr1e-04_sd0.yaml"
 eval_config: EvalConfig = configue.load(
     config_file,  
     sub_path="eval_config",
