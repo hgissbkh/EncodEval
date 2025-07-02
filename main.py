@@ -5,12 +5,13 @@ import subprocess
 import configue
 import fire
 
+from encodeval import modeling
 from encodeval.eval_tasks import (
     EvalConfig,
-    SequenceClassificationEval,
-    SequenceRegressionEval,
-    TokenClassificationEval,
     RetrievalEval,
+    QuestionAnsweringEval,
+    SequenceClassificationEval,
+    TokenClassificationEval,
 )
 
 
@@ -21,14 +22,15 @@ def main(config_file: str = None, model_path: str = None):
     eval_config: EvalConfig = configue.load(config_file, sub_path="eval_config")
     
     # Determine the evaluator based on task type
-    if eval_config.task_type == "SC":
+    if eval_config.task_type == "IR":
+        evaluator = RetrievalEval(eval_config)
+    elif eval_config.task_type == "QA":
+        evaluator = QuestionAnsweringEval(eval_config)
+    elif eval_config.task_type == "SC":
         evaluator = SequenceClassificationEval(eval_config)
-    elif eval_config.task_type == "SR":
-        evaluator = SequenceRegressionEval(eval_config)
     elif eval_config.task_type == "TC":
         evaluator = TokenClassificationEval(eval_config)
-    elif eval_config.task_type == "IR":
-        evaluator = RetrievalEval(eval_config)
+
     else:
         raise ValueError(f"Invalid task type: {eval_config.task_type}")
 

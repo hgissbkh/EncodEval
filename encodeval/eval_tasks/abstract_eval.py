@@ -37,7 +37,7 @@ class EvalConfig:
     tr_args_kwargs: Dict = None
     max_length: int = None
     load_dataset_from_custom_fn: Callable = None
-    task_type: Literal["SC", "SR", "TC", "IR"] = None
+    task_type: Literal["SC", "IR"] = None
     loss_fn: Callable = None
     loss_kwargs: Dict = None
 
@@ -48,7 +48,11 @@ class EvalConfig:
         - Sets training/evaluation parameters
         - Configures dataset and loss function
         - Prepares output/logging directories
-        """
+        """      
+        # Set random seed
+        if "seed" in self.tr_args_kwargs:
+            set_seed(self.tr_args_kwargs["seed"])
+
         # Extract and remove device and dtype from model kwargs
         self.model_dtype = self.model_kwargs.pop("dtype")
         self.device = self.model_kwargs.pop("device")
@@ -56,14 +60,25 @@ class EvalConfig:
         # Handle loading fine-tuned model from disk if specified
         ft_model_config_dir = self.model_kwargs.pop("ft_model_config_dir", None)
         if ft_model_config_dir is not None:
-            ft_model_path = f"{os.environ['EVAL_MODEL_PATH']}/evaluation/weights/{self.task_type}/{ft_model_config_dir}"
+            ft_model_path = f"{os.environ['EVAL_MODEL_PATH']}/fine-tuned/{self.task_type}/{ft_model_config_dir}"
             print(f"Loading fine-tuned model at {ft_model_path}")
             if "pretrained_model_name_or_path" in self.model_kwargs:
                 self.model_kwargs["pretrained_model_name_or_path"] = ft_model_path
             elif "model_name_or_path" in self.model_kwargs:
                 self.model_kwargs["model_name_or_path"] = ft_model_path
                
-        self.load_model()
+        # Load model
+        if self.model_class.__name__ == "SentenceTransformer":
+            self.model = self.model_class(**self.model_kwargs)
+
+            if hasattr(self.model[0].auto_model.config, "retrieval_pooling"):
+                if self.model[0].auto_model.config.retrieval_pooling == "eos":
+                    self.model[1].pooling_mode_mean_tokens = False
+                    self.model[1].pooling_mode_lasttoken = True
+
+        else:
+            self.model = self.model_class.from_pretrained(**self.model_kwargs)
+        self.model = self.model.to(self.model_dtype).to(self.device)
 
         # Show the device and dtype of model parameters
         for _, param in self.model.named_parameters():
@@ -82,7 +97,7 @@ class EvalConfig:
             else self.model.config.max_position_embeddings
         )
         self.max_length = model_max_length if self.max_length is None else min(model_max_length, self.max_length)
-        self.max_length = round(0.95 * self.max_length)  # Apply 5% buffer
+        self.max_length = round(0.99 * self.max_length)  # Apply 1% buffer
         print(f"Max sequence length set to {self.max_length}")
 
         # Sync special tokens from model config to tokenizer
@@ -131,9 +146,6 @@ class EvalConfig:
                     TripletDistanceMetric, self.loss_kwargs["distance_metric"]
                 )
 
-        # Set evaluation seed
-        set_seed(self.tr_args.seed)
-
         # Load dataset (from user-defined loader if provided)
         if self.load_dataset_from_custom_fn is not None:
             self.dataset = self.load_dataset_from_custom_fn()
@@ -148,24 +160,13 @@ class EvalConfig:
             f"{self.task_type}/{self.dataset_name}/{ft_model_config_dir.replace('/', '_')}/{output_subdir}"
             if ft_model_config_dir is not None else f"{self.task_type}/{self.dataset_name}/{output_subdir}"
         )
-        self.tr_args.output_dir = f"{os.environ['EVAL_MODEL_PATH']}/evaluation/weights/{output_subdir}"
-        self.tr_args.logging_dir = f"{os.environ['EVAL_MODEL_PATH']}/evaluation/logs/{output_subdir}"
-        self.results_dir = f"{output_dir}/{model_name}/{output_subdir}"
+        self.tr_args.output_dir = f"{os.environ['EVAL_MODEL_PATH']}/fine-tuned/{output_subdir}"
+        self.tr_args.logging_dir = f"{output_dir}/logs/{model_name}/{output_subdir}"
+        self.results_dir = f"{output_dir}/results/{model_name}/{output_subdir}"
 
         # Clear old logs if logging directory is not empty
         if os.path.exists(self.tr_args.logging_dir) and len(os.listdir(self.tr_args.logging_dir)) > 0:
             subprocess.run(f"rm {self.tr_args.logging_dir}/*", shell=True, check=True)
-
-    def load_model(self):
-        """
-        Loads the model using the specified class and keyword arguments.
-        Converts model to the specified dtype and device.
-        """
-        if self.model_class.__name__ == "SentenceTransformer":
-            self.model = self.model_class(**self.model_kwargs)
-        else:
-            self.model = self.model_class.from_pretrained(**self.model_kwargs)
-        self.model = self.model.to(self.model_dtype).to(self.device)
 
 
 class AbstractEval:
